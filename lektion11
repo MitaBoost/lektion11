@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>German-Arabic Vocabulary Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+
+        #wordList, #vocabularyList {
+            margin-top: 20px;
+        }
+
+        #wordList div, #vocabularyList div {
+            background-color: #ecf0f1;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+        }
+
+        #quizContainer,
+        #addWordContainer,
+        #vocabularyListContainer {
+            display: none;
+        }
+
+        #answerOptions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .answerOption {
+            width: 48%;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        .answerOption:hover {
+            background-color: #2980b9;
+        }
+
+        .answerOption.selected {
+            background-color: #f39c12;
+            font-weight: bold;
+        }
+
+        .answerOption.correct {
+            background-color: #2ecc71;
+        }
+
+        .answerOption.incorrect {
+            background-color: #e74c3c;
+        }
+
+        .quizType {
+            margin-bottom: 20px;
+        }
+
+        #question {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        #question span {
+            color: #e74c3c;
+        }
+
+        .vocabulary-category {
+            margin-bottom: 20px;
+        }
+
+        .vocabulary-category h3 {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .vocabulary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .vocabulary-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>German-Arabic Vocabulary Quiz Game</h1>
+        <div id="menu">
+            <button id="addWordBtn">Add a new word</button>
+            <button id="startQuizBtn">Start quiz</button>
+            <button id="viewWordsBtn">View all words</button>
+            <button id="viewVocabularyBtn">View A1 Vocabulary List</button>
+        </div>
+
+        <div id="addWordContainer">
+            <h2>Add a new word</h2>
+            <input type="text" id="germanWord" placeholder="Enter the German word">
+            <input type="text" id="arabicTranslation" placeholder="Enter the Arabic translation">
+            <button id="addWordAction">Add Word</button>
+        </div>
+
+        <div id="quizContainer">
+            <h2>Quiz</h2>
+            <div class="quizType">
+                <label>
+                    <input type="radio" name="quizType" value="translate" checked> Translate
+                </label>
+                <label>
+                    <input type="radio" name="quizType" value="choose"> Choose Correct Answer
+                </label>
+            </div>
+            <p id="question"></p>
+            <div id="answerOptions"></div>
+            <p id="result"></p>
+            <p id="score"></p>
+        </div>
+
+        <div id="wordList"></div>
+
+        <div id="vocabularyListContainer">
+            <h2>Complete Deutsch A1 Vocabulary List</h2>
+            <div id="vocabularyList"></div>
+        </div>
+    </div>
+
+    <script>
+        const wordDict = {
+            "der Bau": "البناء",
+            "der Dom": "الكاتدرائية",
+            "die Kneipe": "الحانة",
+            "der Karneval": "الكرنفال",
+            "Straßenkarneval": "كرنفال الشارع",
+            "der Aschermittwoch": "أربعاء الرماد",
+            "die Fastnacht": "الليلة السابقة للصوم",
+            "Weiberfastnacht": "كرنفال النساء",
+            "der Rosenmontag": "إثنين الورود",
+            "der Rosenmontagszug": "موكب إثنين الورود",
+            "die Kathedrale": "الكاتدرائية",
+            "der Turm": "البرج",
+            "die Aussprache": "النطق",
+            "der Dialekt": "اللهجة",
+            "die Färbung": "التلوين (اللكنة)",
+            "das Hochdeutsch": "اللغة الألمانية الفصحى",
+            "das Interview": "المقابلة",
+            "die Kommunikation": "التواصل",
+            "das Kommunikationsmittel": "وسائل التواصل",
+            "der Konsonant": "الحرف الساكن",
+            "der Laut": "الصوت",
+            "die Mundart": "اللهجة",
+            "die Sprachvarietät": "تنوع اللغة",
+            "die Variante": "التنوع",
+            "klingen": "يبدو (الصوت)",
+            "die Akademie": "الأكاديمية",
+            "das Fach": "المادة الدراسية",
+            "die Gebühr": "الرسوم",
+            "Studiengebühr": "رسوم الدراسة",
+            "die Hochschule": "الكلية",
+            "die Prüfung": "الامتحان",
+            "das Semester": "الفصل الدراسي",
+            "Wintersemester": "الفصل الدراسي الشتوي",
+            "Sommersemester": "الفصل الدراسي الصيفي",
+            "der Abschluss": "الشهادة",
+            "der Alltag": "الحياة اليومية",
+            "der Anfang": "البداية",
+            "das Ausland": "الخارج",
+            "der Ausländer": "الأجنبي",
+            "die Ausländerin": "الأجنبية",
+            "die Ausstellung": "المعرض",
+            "das Porträt": "البورتريه",
+            "der Besucher": "الزائر",
+            "die Besucherin": "الزائرة",
+            "der Bürger": "المواطن",
+            "die Bürgerin": "المواطنة",
+            "die Geschichte": "التاريخ",
+            "das Archiv": "الأرشيف",
+            "Tanzarchiv": "أرشيف الرقص",
+            "die Heimat": "الوطن",
+            "die Region": "المنطقة",
+            "der Höhepunkt": "ذروة",
+            "die Jahreszeit": "الفصل (السنوي)",
+            "der Klang": "الصوت",
+            "das Lied": "الأغنية",
+            "der Klub": "النادي",
+            "das Kostüm": "الزي التنكري",
+            "Kostümtrend": "توجهات الأزياء",
+            "die Kunst": "الفن",
+            "die Literatur": "الأدب",
+            "die Medien": "الوسائط",
+            "die Medienbranche": "صناعة الإعلام",
+            "die Medienzentren": "مراكز الإعلام",
+            "die Meinung": "الرأي",
+            "die Messe": "المعرض التجاري",
+            "die Minderheit": "الأقلية",
+            "der Ruf": "السمعة",
+            "die Sammlung": "المجموعة",
+            "die Schiffstour": "جولة بالقارب",
+            "die Sehenswürdigkeit": "معالم الجذب",
+            "die Sendung": "البرنامج (التلفزيوني أو الإذاعي)",
+            "die Szene": "المشهد",
+            "die Tatsache": "الحقيقة",
+            "der Tourist": "السائح",
+            "die Touristin": "السائحة",
+            "der Vergleich": "المقارنة",
+            "das Video": "الفيديو",
+            "der Wahnsinn": "الجنون",
+            "der Witz": "النكتة",
+            "die Comedy": "الكوميديا",
+            "absolvieren": "إتمام/إنهاء (دراسة أو تدريب)",
+            "anschauen": "مشاهدة",
+            "befinden, sich": "يوجد (في مكان)",
+            "besuchen": "زيارة",
+            "erholen, sich": "استراحة/استعادة النشاط",
+            "erkennen": "التعرف",
+            "freuen, sich auf + A": "التطلع إلى",
+            "fühlen, sich": "الشعور",
+            "gründen": "تأسيس",
+            "hoffen": "الأمل",
+            "interessieren, sich für + A": "الاهتمام ب",
+            "kennen": "المعرفة",
+            "kennenlernen": "التعرف على",
+            "malen": "الرسم",
+            "verändern, sich": "التغيير",
+            "verbessern": "تحسين",
+            "verlieben, sich in + A": "الوقوع في الحب",
+            "vorstellen, sich + Infinitiv + zu": "تخيل",
+            "wohlfühlen, sich": "الشعور بالراحة",
+            "alltäglich": "يومي",
+            "attraktiv": "جذاب",
+            "ausländisch": "أجنبي",
+            "bedeutend": "مهم",
+            "bekannt": "معروف",
+            "eigen": "خاص",
+            "fremd": "غريب",
+            "interaktiv": "تفاعلي",
+            "kostenlos": "مجاني",
+            "kreativ": "مبدع",
+            "lebendig": "حيوي",
+            "nächst": "التالي",
+            "nah": "قريب",
+            "fern": "بعيد",
+            "neugierig": "فضولي",
+            "überrascht": "مندهش",
+            "verschieden": "مختلف",
+            "weltweit": "عالمي",
+            "wichtig": "مهم",
+            "unwichtig": "غير مهم",
+            "anders": "بشكل مختلف",
+            "meistens": "غالبًا",
+            "weg": "بعيدًا",
+            "zurzeit": "حاليًا"
+        };
+
+        const vocabularyList = {
+            "Basic Phrases": {
+                "Hallo": "Hello",
+                "Guten Morgen": "Good morning",
+                "Guten Tag": "Good day",
+                "Guten Abend": "Good evening",
+                "Gute Nacht": "Good night",
+                "Tschüss": "Bye",
+                "Auf Wiedersehen": "Goodbye",
+                "Ja": "Yes",
+                "Nein": "No",
+                "Bitte": "Please / You're welcome",
+                "Danke": "Thank you",
+                "Entschuldigung": "Excuse me / Sorry",
+                "Wie geht's?": "How are you?",
+                "Mir geht es gut.": "I'm doing well.",
+                "Wie heißt du?": "What's your name?",
+                "Ich heiße…": "My name is…",
+                "Woher kommst du?": "Where are you from?",
+                "Ich komme aus…": "I come from…"
+            },
+            "Numbers (Zahlen)": {
+                "Eins": "One",
+                "Zwei": "Two",
+                "Drei": "Three",
+                "Vier": "Four",
+                "Fünf": "Five",
+                "Sechs": "Six",
+                "Sieben": "Seven",
+                "Acht": "Eight",
+                "Neun": "Nine",
+                "Zehn": "Ten",
+                "Zwanzig": "Twenty",
+                "Dreißig": "Thirty",
+                "Hundert": "One hundred",
+                "Tausend": "Thousand"
+            },
+            "Days of the Week (Wochentage)": {
+                "Montag": "Monday",
+                "Dienstag": "Tuesday",
+                "Mittwoch": "Wednesday",
+                "Donnerstag": "Thursday",
+                "Freitag": "Friday",
+                "Samstag": "Saturday",
+                "Sonntag": "Sunday"
+            },
+            "Months (Monate)": {
+                "Januar": "January",
+                "Februar": "February",
+                "März": "March",
+                "April": "April",
+                "Mai": "May",
+                "Juni": "June",
+                "Juli": "July",
+                "August": "August",
+                "September": "September",
+                "Oktober": "October",
+                "November": "November",
+                "Dezember": "December"
+            },
+            "Family (Familie)": {
+                "Vater": "Father",
+                "Mutter": "Mother",
+                "Bruder": "Brother",
+                "Schwester": "Sister",
+                "Sohn": "Son",
+                "Tochter": "Daughter",
+                "Eltern": "Parents",
+                "Großvater": "Grandfather",
+                "Großmutter": "Grandmother"
+            },
+            "Colors (Farben)": {
+                "Rot": "Red",
+                "Blau": "Blue",
+                "Gelb": "Yellow",
+                "Grün": "Green",
+                "Schwarz": "Black",
+                "Weiß": "White",
+                "Grau": "Gray",
+                "Braun": "Brown",
+                "Rosa": "Pink"
+            },
+            "Professions (Berufe)": {
+                "Lehrer": "Teacher (male)",
+                "Lehrerin": "Teacher (female)",
+                "Arzt": "Doctor (male)",
+                "Ärztin": "Doctor (female)",
+                "Ingenieur": "Engineer (male)",
+                "Ingenieurin": "Engineer (female)",
+                "Verkäufer": "Salesman",
+                "Verkäuferin": "Saleswoman",
+                "Student": "Student (male)",
+                "Studentin": "Student (female)",
+                "Kellner": "Waiter",
+                "Kellnerin": "Waitress"
+            },
+            "Food & Drinks (Essen & Trinken)": {
+                "Brot": "Bread",
+                "Wasser": "Water",
+                "Milch": "Milk",
+                "Kaffee": "Coffee",
+                "Tee": "Tea",
+                "Apfel": "Apple",
+                "Banane": "Banana",
+                "Kartoffel": "Potato",
+                "Fleisch": "Meat",
+                "Fisch": "Fish",
+                "Käse": "Cheese",
+                "Butter": "Butter",
+                "Salz": "Salt",
+                "Zucker": "Sugar"
+            },
+            "Body Parts (Körperteile)": {
+                "Kopf": "Head",
+                "Auge": "Eye",
+                "Ohr": "Ear",
+                "Nase": "Nose",
+                "Mund": "Mouth",
+                "Hand": "Hand",
+                "Arm": "Arm",
+                "Bein": "Leg",
+                "Fuß": "Foot"
+            },
+            "Weather (Wetter)": {
+                "Sonne": "Sun",
+                "Regen": "Rain",
+                "Schnee": "Snow",
+                "Wind": "Wind",
+                "Wolke": "Cloud",
+                "Heiß": "Hot",
+                "Kalt": "Cold",
+                "Warm": "Warm",
+                "Kühl": "Cool"
+            },
+            "Common Verbs (Verben)": {
+                "Sein": "To be",
+                "Haben": "To have",
+                "Gehen": "To go",
+                "Kommen": "To come",
+                "Machen": "To do/make",
+                "Sprechen": "To speak",
+                "Essen": "To eat",
+                "Trinken": "To drink",
+                "Lesen": "To read",
+                "Schreiben": "To write",
+                "Sehen": "To see",
+                "Hören": "To hear",
+                "Schlafen": "To sleep"
+            },
+            "Question Words (Fragewörter)": {
+                "Wer?": "Who?",
+                "Was?": "What?",
+                "Wo?": "Where?",
+                "Wann?": "When?",
+                "Warum?": "Why?",
+                "Wie?": "How?",
+                "Wie viel?": "How much?",
+                "Wie viele?": "How many?"
+            },
+            "Directions (Richtungen)": {
+                "Links": "Left",
+                "Rechts": "Right",
+                "Geradeaus": "Straight ahead",
+                "Zurück": "Back",
+                "Hier": "Here",
+                "Dort": "There"
+            },
+            "Household Items (Haushaltsgegenstände)": {
+                "Tisch": "Table",
+                "Stuhl": "Chair",
+                "Bett": "Bed",
+                "Tür": "Door",
+                "Fenster": "Window",
+                "Lampe": "Lamp",
+                "Fernseher": "Television",
+                "Kühlschrank": "Refrigerator",
+                "Spiegel": "Mirror"
+            },
+            "Time (Zeit)": {
+                "Stunde": "Hour",
+                "Minute": "Minute",
+                "Sekunde": "Second",
+                "Tag": "Day",
+                "Woche": "Week",
+                "Monat": "Month",
+                "Jahr": "Year",
+                "Heute": "Today",
+                "Morgen": "Tomorrow",
+                "Gestern": "Yesterday"
+            },
+            "Prepositions (Präpositionen)": {
+                "In": "In",
+                "Auf": "On",
+                "Unter": "Under",
+                "Neben": "Next to",
+                "Vor": "In front of",
+                "Hinter": "Behind"
+            }
+            // ... Add all other categories here
+        };
+
+        let score = 0;
+        let currentWord = '';
+        let currentQuizType = 'translate';
+
+        document.querySelector('#addWordBtn').addEventListener('click', () => {
+            document.querySelector('#addWordContainer').style.display = 'block';
+            document.querySelector('#quizContainer').style.display = 'none';
+            document.querySelector('#wordList').style.display = 'none';
+            document.querySelector('#vocabularyListContainer').style.display = 'none';
+        });
+
+        document.querySelector('#startQuizBtn').addEventListener('click', () => {
+            document.querySelector('#quizContainer').style.display = 'block';
+            document.querySelector('#addWordContainer').style.display = 'none';
+            document.querySelector('#wordList').style.display = 'none';
+            document.querySelector('#vocabularyListContainer').style.display = 'none';
+            startQuiz();
+        });
+
+        document.querySelector('#viewWordsBtn').addEventListener('click', () => {
+            document.querySelector('#wordList').innerHTML = '';
+            Object.keys(wordDict).forEach(word => {
+                const wordDiv = document.createElement('div');
+                wordDiv.textContent = `${word} - ${wordDict[word]}`;
+                document.querySelector('#wordList').appendChild(wordDiv);
+            });
+            document.querySelector('#wordList').style.display = 'block';
+            document.querySelector('#addWordContainer').style.display = 'none';
+            document.querySelector('#quizContainer').style.display = 'none';
+            document.querySelector('#vocabularyListContainer').style.display = 'none';
+        });
+
+        document.querySelector('#viewVocabularyBtn').addEventListener('click', () => {
+            document.querySelector('#vocabularyList').innerHTML = '';
+            Object.keys(vocabularyList).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.classList.add('vocabulary-category');
+                categoryDiv.innerHTML = `<h3>${category}</h3>`;
+                Object.keys(vocabularyList[category]).forEach(word => {
+                    const wordDiv = document.createElement('div');
+                    wordDiv.classList.add('vocabulary-item');
+                    wordDiv.innerHTML = `<span>${word}</span><span>${vocabularyList[category][word]}</span>`;
+                    categoryDiv.appendChild(wordDiv);
+                });
+                document.querySelector('#vocabularyList').appendChild(categoryDiv);
+            });
+            document.querySelector('#vocabularyListContainer').style.display = 'block';
+            document.querySelector('#addWordContainer').style.display = 'none';
+            document.querySelector('#quizContainer').style.display = 'none';
+            document.querySelector('#wordList').style.display = 'none';
+        });
+
+        document.querySelector('#addWordAction').addEventListener('click', () => {
+            const germanWord = document.querySelector('#germanWord').value.trim();
+            const arabicTranslation = document.querySelector('#arabicTranslation').value.trim();
+
+            if (germanWord && arabicTranslation) {
+                wordDict[germanWord] = arabicTranslation;
+                alert('Word added successfully!');
+                document.querySelector('#germanWord').value = '';
+                document.querySelector('#arabicTranslation').value = '';
+            } else {
+                alert('Please fill in both fields.');
+            }
+        });
+
+        document.querySelectorAll('input[name="quizType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentQuizType = e.target.value;
+                startQuiz();
+            });
+        });
+
+        function startQuiz() {
+            const words = Object.keys(wordDict);
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            
+            if (currentQuizType === 'translate') {
+                document.querySelector('#question').innerHTML = `Translate this word: <span>${currentWord}</span>`;
+            } else {
+                document.querySelector('#question').innerHTML = `Choose the correct German word for: <span>${wordDict[currentWord]}</span>`;
+            }
+            
+            const answerOptions = document.querySelector('#answerOptions');
+            answerOptions.innerHTML = '';
+            
+            // Generate 4 answer options
+            const options = currentQuizType === 'translate' ? [wordDict[currentWord]] : [currentWord];
+            while (options.length < 4) {
+                const randomWord = words[Math.floor(Math.random() * words.length)];
+                const optionToAdd = currentQuizType === 'translate' ? wordDict[randomWord] : randomWord;
+                if (!options.includes(optionToAdd)) {
+                    options.push(optionToAdd);
+                }
+            }
+            
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('answerOption');
+                button.addEventListener('click', () => selectAnswer(button));
+                answerOptions.appendChild(button);
+            });
+            
+            document.querySelector('#result').textContent = '';
+            document.querySelector('#score').textContent = `Score: ${score}`;
+        }
+
+        function selectAnswer(selectedButton) {
+            document.querySelectorAll('.answerOption').forEach(button => {
+                button.classList.remove('selected');
+            });
+            selectedButton.classList.add('selected');
+        }
+
+        function checkAnswer() {
+            const selectedButton = document.querySelector('.answerOption.selected');
+            if (!selectedButton) return;
+
+            const userAnswer = selectedButton.textContent;
+            const correctAnswer = currentQuizType === 'translate' ? wordDict[currentWord] : currentWord;
+            const answerOptions = document.querySelectorAll('.answerOption');
+            
+            answerOptions.forEach(option => {
+                option.disabled = true;
+                if (option.textContent === correctAnswer) {
+                    option.classList.add('correct');
+                } else if (option.textContent === userAnswer && userAnswer !== correctAnswer) {
+                    option.classList.add('incorrect');
+                }
+            });
+
+            if (userAnswer === correctAnswer) {
+                document.querySelector('#result').textContent = 'Correct!';
+                score++;
+            } else {
+                document.querySelector('#result').textContent = `Wrong. The correct answer was ${correctAnswer}.`;
+            }
+
+            document.querySelector('#score').textContent = `Score: ${score}`;
+            
+            setTimeout(() => {
+                answerOptions.forEach(option => {
+                    option.classList.remove('correct', 'incorrect', 'selected');
+                    option.disabled = false;
+                });
+                startQuiz();
+            }, 2000);
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('answerOption')) {
+                checkAnswer();
+            }
+        });
+
+        startQuiz();
+    </script>
+</body>
+</html>
